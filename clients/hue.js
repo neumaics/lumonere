@@ -1,4 +1,5 @@
 const axios = require('axios');
+const Light = require('../models/light');
 
 class Hue {
   constructor(host, port, username, config) {
@@ -21,7 +22,9 @@ class Hue {
   }
 
   async lightState(id) {
-    return this.apiCall(`/lights/${id}`);
+    const response = await this.apiCall(`/lights/${id}`);
+
+    return Light.fromHue(id, response);
   }
 
   async apiCall(resource) {

@@ -1,9 +1,11 @@
 const Hue = require('../clients/hue');
 
+const TRACKED_VALUES = [ 'on', 'brightness' ];
+
 class Monitor {
-  constructor(username) {
+  constructor(username, host, port) {
     this.username = username;
-    this.hueClient = new Hue('192.168.1.207', '8080', username, {});
+    this.hueClient = new Hue(host, port, username, {});
     this.state = [];
 
     this.callbacks = {
@@ -20,10 +22,10 @@ class Monitor {
   start(config, pollingInterval = 1000) {
     this.hueClient.lights()
       .then((initialState) => {
-        this.callbacks.start.map(callback => callback(config));
+        this.callbacks.start.map(callback => callback(initialState));
 
         this.state = initialState;
-        setInterval(() => this.pollForChanges(), pollingInterval);
+        setInterval(() => this.poll(), pollingInterval);
       })
       .catch(() => console.error('there was an error contacting the Hub'));
   }
@@ -43,9 +45,45 @@ class Monitor {
     }
   }
 
-  pollForChanges() {
-    //get state, look for changes, call change callbacks.
-    this.callbacks.change.map(callback => callback());
+  poll() {
+    this.hueClient.lights()
+      .then(newstate => {
+        this.emitValueChanges(this.state, newstate);
+        this.emitStateChange(this.state, newstate);
+        this.emitStateChange(newstate, this.state);
+
+        this.state = newstate;
+      })
+      .catch((error) => console.error(`there was an error while checking for changes: ${error}`));
+  }
+
+  emit(changeEvent) {
+    this.callbacks.change.map(callback => callback(changeEvent));
+  }
+
+  emitValueChanges(previousState, currentState) {
+    previousState.forEach(prev => {
+      const curr = currentState.find(l => l.id == prev.id);
+
+      if (typeof curr != 'undefined') {
+        Object.keys(prev).forEach(k => {
+          if (TRACKED_VALUES.includes(k) && prev[k] != curr[k]) {
+            this.emit({ id: prev.id, [k]: curr[k]});
+          }
+        });
+      }
+    });
+  }
+
+  emitStateChange(previousState, currentState) {
+    currentState.forEach(light => {
+      const prev = previousState.find(l => l.id == light.id);
+
+      // TODO: clarify what needs to happen when a light is added/removed.
+      if (typeof prev == 'undefined') {
+        this.emit({ id: light.id });
+      }
+    });
   }
 }
 

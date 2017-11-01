@@ -9,8 +9,8 @@ Lumonere was built using Node.js version 8.
 
 ### Running
 
-`npm start <username>`
+`npm start <username> [host] [port]`
 
 or
 
-`node index.js <username>`
+`node index.js <username> [host] [port]`
