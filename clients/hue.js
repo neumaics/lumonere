@@ -11,7 +11,21 @@ class Hue {
   }
 
   async config() {
-    const response = await this.client('/config');
+    return this.apiCall('/config');
+  }
+
+  async lights() {
+    const lights = await this.apiCall('/lights');
+
+    return Promise.all(Object.keys(lights).map((id) => this.lightState(id)));
+  }
+
+  async lightState(id) {
+    return this.apiCall(`/lights/${id}`);
+  }
+
+  async apiCall(resource) {
+    const response = await this.client(resource);
 
     return response.data;
   }

@@ -17,8 +17,12 @@ lumonere.parse(process.argv);
 
 if (env.username) {
   const monitor = new Monitor(env.username);
+
+  monitor.on('start', (config) => console.log(`config: ${config}` ));
+  monitor.on('change', (change) => console.log(`change: ${change}`));
+
   monitor.connect()
-    .then(monitor.start)
+    .then((config) => monitor.start(config))
     .catch(error => console.error(`there was an error connecting to the hub: ${error}`));
 } else {
   console.error('Please provide a username for the Philips Hub');
