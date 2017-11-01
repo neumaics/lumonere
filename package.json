@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "repository": "https://github.com/neumaics/lumonere",
   "scripts": {
     "start": "node index.js --",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "image:build": "docker build -t neumaics/lumonere . ",
+    "image:run": "docker run --rm -t neumaics/lumonere --"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "axios": "^0.17.0",
     "commander": "^2.11.0"
